@@ -232,8 +232,9 @@ class CiphertextMessage(Message):
             decoded_msg = self.apply_shift(shift)
             words = decoded_msg.split(' ')
             real_words = 0
+            valid_words = self.get_valid_words()
             for word in words:
-                if is_word(self.get_valid_words(), word):
+                if is_word(valid_words, word):
                     real_words += 1
             if real_words > max_real_words:
                 max_real_words = real_words
