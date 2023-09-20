@@ -1,7 +1,7 @@
 # 6.0001/6.00 Problem Set 5 - RSS Feed Filter
-# Name:
-# Collaborators:
-# Time:
+# Name: Facundo Frau
+# Collaborators: -
+# Time: -
 
 import feedparser
 import string
@@ -54,8 +54,29 @@ def process(url):
 
 # Problem 1
 
-# TODO: NewsStory
+class NewsStory(object):
+    def __init__(self, guid, title, description, link, pubdate):
+        self.guid = guid
+        self.title = title
+        self.description = description
+        self.link = link
+        self.pubdate = pubdate
 
+    def get_guid(self):
+        return self.guid
+
+    def get_title(self):
+        return self.title
+    
+    def get_description(self):
+        return self.description
+
+    def get_link(self):
+        return self.link
+    
+    def get_pubdate(self):
+        return self.pubdate
+    
 
 #======================
 # Triggers
@@ -73,36 +94,127 @@ class Trigger(object):
 # PHRASE TRIGGERS
 
 # Problem 2
-# TODO: PhraseTrigger
+class PhraseTrigger(Trigger):
+    def __init__(self, phrase):
+        self.phrase = phrase
+    
+    def get_phrase(self):
+        return self.phrase
+    
+    def is_phrase_in(self, text):
+        text = text.lower()
+        for char in string.punctuation:
+            text = text.replace(char, ' ')
+        while '  ' in text:
+            text = text.replace('  ', ' ')
+        
+        phrase = self.get_phrase().lower().split(' ')
+        text = text.split(' ')
+
+        words_in_txt = all([word in text for word in phrase])
+        if not words_in_txt:
+            return False
+        start_index = text.index(phrase[0])
+        for i in range(1, len(phrase)):
+            txt_index = i + start_index
+            try:
+                if phrase[i] != text[txt_index]:
+                    return False
+            except:
+                return False
+        return True                      
 
 # Problem 3
-# TODO: TitleTrigger
+class TitleTrigger(PhraseTrigger):
+    def __init__(self, phrase):
+        super().__init__(phrase)
+    
+    def evaluate(self, story):
+        """
+        Returns True if an alert should be generated
+        for the given news item Title, or False otherwise.
+        """
+        title = story.get_title()
+        return super().is_phrase_in(title)
 
 # Problem 4
-# TODO: DescriptionTrigger
+class DescriptionTrigger(PhraseTrigger):
+    def __init__(self, phrase):
+        super().__init__(phrase)
+
+    def evaluate(self, story):
+        """
+        Returns True if an alert should be generated
+        for the given news item Description, or False otherwise.
+        """
+        description = story.get_description()
+        return super().is_phrase_in(description)
 
 # TIME TRIGGERS
 
 # Problem 5
-# TODO: TimeTrigger
-# Constructor:
-#        Input: Time has to be in EST and in the format of "%d %b %Y %H:%M:%S".
-#        Convert time from string to a datetime before saving it as an attribute.
+class TimeTrigger(Trigger):
+    def __init__(self, timestr):
+        self.time = datetime.strptime(timestr, "%d %b %Y %H:%M:%S")
+        self.time = self.time.replace(tzinfo=pytz.timezone("EST"))
 
 # Problem 6
-# TODO: BeforeTrigger and AfterTrigger
+class BeforeTrigger(TimeTrigger):
+    def __init__(self, timestr):
+        super().__init__(timestr)
+
+    def evaluate(self, story):
+        """
+        Returns True when a story is published strictly before
+        the Trigger's time, or False otherwise.
+        """
+        pubdate = story.get_pubdate().replace(tzinfo=pytz.timezone("EST"))
+        return pubdate.timestamp() < self.time.timestamp()
 
 
+class AfterTrigger(TimeTrigger):
+    def __init__(self, timestr):
+        super().__init__(timestr)
+
+    def evaluate(self, story):
+        """
+        Returns True when a story is published strictly after
+        the Trigger's time, or False otherwise.
+        """
+        pubdate = story.get_pubdate().replace(tzinfo=pytz.timezone("EST"))
+        return pubdate.timestamp() > self.time.timestamp()
+    
 # COMPOSITE TRIGGERS
 
 # Problem 7
-# TODO: NotTrigger
+class NotTrigger(Trigger):
+    def __init__(self, other_trigger):
+        self.other_trigger = other_trigger
+    
+    def evaluate(self, story):
+        return not self.other_trigger.evaluate(story)
 
 # Problem 8
-# TODO: AndTrigger
+class AndTrigger(Trigger):
+    def __init__(self, trigger1, trigger2):
+        self.trigger1 = trigger1
+        self.trigger2 = trigger2
 
+    def evaluate(self, story):
+        eval_1 = self.trigger1.evaluate(story)
+        eval_2 = self.trigger2.evaluate(story)
+        return eval_1 and eval_2
+    
 # Problem 9
-# TODO: OrTrigger
+class OrTrigger(Trigger):
+    def __init__(self, trigger1, trigger2):
+        self.trigger1 = trigger1
+        self.trigger2 = trigger2
+
+    def evaluate(self, story):
+        eval_1 = self.trigger1.evaluate(story)
+        eval_2 = self.trigger2.evaluate(story)
+        return eval_1 or eval_2
 
 
 #======================
