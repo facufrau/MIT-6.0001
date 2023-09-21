@@ -229,9 +229,12 @@ def filter_stories(stories, triggerlist):
     Returns: a list of only the stories for which a trigger in triggerlist fires.
     """
     # TODO: Problem 10
-    # This is a placeholder
-    # (we're just returning all the stories, with no filtering)
-    return stories
+    filtered = []
+    for story in stories:
+        triggered = any([trigger.evaluate(story) for trigger in triggerlist])
+        if triggered:
+            filtered.append(story)
+    return filtered
 
 
 
@@ -255,11 +258,29 @@ def read_trigger_config(filename):
         if not (len(line) == 0 or line.startswith('//')):
             lines.append(line)
 
-    # TODO: Problem 11
-    # line is the list of lines that you need to parse and for which you need
-    # to build triggers
+    trigger_list = []
+    triggers = {}
+    class_names = {'And': AndTrigger, 'Or': OrTrigger, 'Not': NotTrigger,
+                   'Title': TitleTrigger, 'Description': DescriptionTrigger,
+                   'After': AfterTrigger, 'Before': BeforeTrigger}
+    for line in lines:
+        line = line.split(',')
+        if line[0] == 'ADD':
+            for i in range(1, len(line)):
+                trigger_name = line[i]
+                trigger_list.append(triggers[trigger_name])
+        else:
+            trigger_type = line[1].capitalize()
+            if trigger_type in ('And', 'Or'):
+                trigger = class_names[trigger_type](triggers[line[2]], triggers[line[3]])
+            elif trigger_type == 'Not':
+                trigger = class_names[trigger_type](triggers[line[2]])
+            else:
+                trigger = class_names[trigger_type](line[2])
+            triggers[line[0]] = trigger
 
     print(lines) # for now, print it so you see what it contains!
+    return trigger_list
 
 
 
@@ -269,15 +290,18 @@ def main_thread(master):
     # A sample trigger list - you might need to change the phrases to correspond
     # to what is currently in the news
     try:
-        t1 = TitleTrigger("election")
-        t2 = DescriptionTrigger("Trump")
-        t3 = DescriptionTrigger("Clinton")
-        t4 = AndTrigger(t2, t3)
-        triggerlist = [t1, t4]
+        # Uncomment for using hardcoded triggers instead of loading a txtfile
+        # t1 = TitleTrigger("microsoft")
+        # t2 = DescriptionTrigger("nvidia")
+        # t3 = DescriptionTrigger("amd")
+        # t4 = OrTrigger(t2, t3)
+        # t5 = TitleTrigger("ai")
+        # t6 = DescriptionTrigger("ukraine")
+        # triggerlist = [t1, t4, t5, t6]
 
         # Problem 11
-        # TODO: After implementing read_trigger_config, uncomment this line 
-        # triggerlist = read_trigger_config('triggers.txt')
+        # After implementing read_trigger_config, uncomment this line 
+        triggerlist = read_trigger_config('./triggers.txt')
         
         # HELPER CODE - you don't need to understand this!
         # Draws the popup window that displays the filtered stories
@@ -312,8 +336,8 @@ def main_thread(master):
             # Get stories from Google's Top Stories RSS news feed
             stories = process("http://news.google.com/news?output=rss")
 
-            # Get stories from Yahoo's Top Stories RSS news feed
-            stories.extend(process("http://news.yahoo.com/rss/topstories"))
+            # Get stories from Pizzel Podcast RSS news feed
+            stories.extend(process("https://pizzelpodcast.com/?format=rss"))
 
             stories = filter_stories(stories, triggerlist)
 
