@@ -118,8 +118,6 @@ def compare_cow_transport_algorithms():
     # TODO: Your code here
     pass
 
-cows = load_cows("ps1_cow_data.txt")
-print(cows)
-print(greedy_cow_transport(cows, 10))
-c2 ={'Jesse': 6, 'Maybel': 3, 'Callie': 2, 'Maggie': 5}
-print(greedy_cow_transport(c2, 10))
+if __name__ == '__main__':
+    cows = load_cows("ps1_cow_data.txt")
+    print(cows)
