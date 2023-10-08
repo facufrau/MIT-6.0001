@@ -24,8 +24,15 @@ def load_cows(filename):
     Returns:
     a dictionary of cow name (string), weight (int) pairs
     """
-    # TODO: Your code here
-    pass
+    with open(filename, "r") as f:
+        lines = f.readlines()
+    cows = {}
+    for line in lines:
+        line = line.strip().split(',')
+        name = line[0]
+        weight = int(line[1])
+        cows[name] = weight
+    return cows
 
 # Problem 2
 def greedy_cow_transport(cows,limit=10):
@@ -50,8 +57,24 @@ def greedy_cow_transport(cows,limit=10):
     transported on a particular trip and the overall list containing all the
     trips
     """
-    # TODO: Your code here
-    pass
+    cows_dict = dict(cows)
+    cows_list = [(name, cows_dict[name]) for name in sorted(cows_dict, key=cows_dict.get, reverse=True)]
+    print(cows_list)
+    trips = []
+    while cows_list:
+        trip = []
+        space = limit
+        new_cows = []
+        for cow in cows_list:
+            if cow[1] <= space:
+                space -= cow[1]
+                trip.append(cow[0])           
+            else:
+                new_cows.append(cow)
+        trips.append(trip)
+        cows_list = new_cows[:]
+    return trips
+
 
 # Problem 3
 def brute_force_cow_transport(cows,limit=10):
@@ -94,3 +117,9 @@ def compare_cow_transport_algorithms():
     """
     # TODO: Your code here
     pass
+
+cows = load_cows("ps1_cow_data.txt")
+print(cows)
+print(greedy_cow_transport(cows, 10))
+c2 ={'Jesse': 6, 'Maybel': 3, 'Callie': 2, 'Maggie': 5}
+print(greedy_cow_transport(c2, 10))
