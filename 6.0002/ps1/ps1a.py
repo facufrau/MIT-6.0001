@@ -59,7 +59,6 @@ def greedy_cow_transport(cows,limit=10):
     """
     cows_dict = dict(cows)
     cows_list = [(name, cows_dict[name]) for name in sorted(cows_dict, key=cows_dict.get, reverse=True)]
-    print(cows_list)
     trips = []
     while cows_list:
         trip = []
@@ -74,7 +73,6 @@ def greedy_cow_transport(cows,limit=10):
         trips.append(trip)
         cows_list = new_cows[:]
     return trips
-
 
 # Problem 3
 def brute_force_cow_transport(cows,limit=10):
@@ -98,11 +96,21 @@ def brute_force_cow_transport(cows,limit=10):
     transported on a particular trip and the overall list containing all the
     trips
     """
-    # TODO: Your code here
-    pass
-        
+    # Generate combination of all trips
+    cow_partitions = get_partitions(cows)
+    # Iterate over all partitions
+    for partition in cow_partitions:
+        weight_checks = []
+        for trip in partition:
+            # Get the weight of each trip and store the check with the limit in a list
+            trip_weight = sum([cows[name] for name in trip])
+            weight_checks.append(trip_weight <= limit)
+        # If all the checks are true -> all trips below the weight limit, found solution
+        if all(weight_checks):
+            return partition
+     
 # Problem 4
-def compare_cow_transport_algorithms():
+def compare_cow_transport_algorithms(filename):
     """
     Using the data from ps1_cow_data.txt and the specified weight limit, run your
     greedy_cow_transport and brute_force_cow_transport functions here. Use the
@@ -115,9 +123,26 @@ def compare_cow_transport_algorithms():
     Returns:
     Does not return anything.
     """
-    # TODO: Your code here
-    pass
+    cows = load_cows(filename)
+    print(f'Loaded {filename}')
+
+    # Greedy algorithm timing 
+    start = time.time()
+    print('----- Greedy Algorithm -----')
+    greedy_result = greedy_cow_transport(cows, 10)
+    end = time.time()
+    print(f'Greedy Trips: {len(greedy_result)}')
+    print(f'Greedy Time: {(end - start):.2f} s')
+
+    # Brute force algorithm timing
+    start = time.time()
+    print('----- Brute Force Algorithm -----')
+    brute_force_result = brute_force_cow_transport(cows, 10)
+    end = time.time()
+    print(f'Brute Force Trips: {len(brute_force_result)}')
+    print(f'Brute Force Time: {(end - start):.2f} s')
 
 if __name__ == '__main__':
-    cows = load_cows("ps1_cow_data.txt")
-    print(cows)
+    compare_cow_transport_algorithms("ps1_cow_data.txt")
+    print('\n\n')
+    compare_cow_transport_algorithms("ps1_cow_data_2.txt")
